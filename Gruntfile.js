@@ -309,6 +309,20 @@ module.exports = function (grunt) {
             options: {
                 exclude: ['modernizr']
             }
+        },
+        buildcontrol: {
+            options: {
+                dir: 'build',
+                commit: true,
+                push: true,
+                message: 'Built %sourceName from commit %sourceCommit% on branch %sourceBranch%'
+            },
+            pages: {
+                options: {
+                    remote: 'git@github.com:jwhayman/warp.git',
+                    branch: 'gh-pages'
+                }
+            }
         }
     });
 
