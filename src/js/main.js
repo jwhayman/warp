@@ -2,21 +2,23 @@
 'use strict';
 
 var warp = {
-    particleCount: 500,
-    warpSpeed: 0.01,
-    cameraPosition: 5,
-    particleColor: 0xffffff,
-    particleSize: 0.00125,
+    particleCount: 500,             // Number of stars
+    warpSpeed: 0.01,                // Velocity of geometry moving towards camera
+    cameraPosition: 5,              // Global camera position
+    particleColor: 0xffffff,        // Colour of stars
+    particleSize: 0.00125,          // Size of stars, affected by screen resolution
 
     init: function () {
-
+        // Setup scene and camera
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(110, warp.getWidth() / warp.getHeight(), 0.01, 1000);
         this.renderer = new THREE.WebGLRenderer();
 
+        // setup renderer
         this.renderer.setSize(warp.getWidth(), warp.getHeight());
         $('#warp-container').append(this.renderer.domElement);
 
+        // Generate geometry
         this.geometry = new THREE.Geometry();
         this.material = new THREE.PointCloudMaterial({
             color: this.particleColor,
@@ -26,32 +28,47 @@ var warp = {
         this.createVertexes();
         this.pointCloud = new THREE.PointCloud(this.geometry, this.material);
 
+        // Add geometry and camera to scene
         this.scene.add(this.pointCloud);
         this.camera.position.z = this.cameraPosition;
 
+        // Start render loop
         requestAnimationFrame(this.renderWarp);
     },
 
+    // Create new vertexes for the starfield geometry
     createVertexes: function () {
-        var vertex, i;
+        var vector, i;
         for (i = 0; i < this.particleCount; i = i + 1) {
-            vertex = new THREE.Vector3();
-            vertex.setX(Math.random() - 0.5);
-            vertex.setY(Math.random() - 0.5);
-            vertex.setZ(Math.random() * this.cameraPosition);
-            this.geometry.vertices.push(vertex);
+            vector = this.setVector();
+            this.geometry.vertices.push(vector);
         }
     },
 
+    // Create a new vector at a default z position
+    setVector: function () {
+        var vector = new THREE.Vector3();
+        vector.setX(Math.random() - 0.5);
+        vector.setY(Math.random() - 0.5);
+        vector.setZ(Math.random() * warp.cameraPosition);
+        return vector;
+    },
+
+    // Reset an existing vector to a default z position
+    updateVector: function (vector) {
+        vector.setX(Math.random() - 0.5);
+        vector.setY(Math.random() - 0.5);
+        vector.setZ(Math.random() * warp.cameraPosition);
+    },
+
+    // Render loop
     renderWarp: function () {
-        var vertex, i;
-        for (i = 0; i < warp.particleCount; i = i + 1) {
-            vertex = warp.geometry.vertices[i];
-            vertex.z += warp.warpSpeed;
-            if (vertex.z >= warp.camera.position.z) {
-                vertex.setX(Math.random() - 0.5);
-                vertex.setY(Math.random() - 0.5);
-                vertex.setZ(Math.random() * warp.cameraPosition);
+        var vector, i;
+        for (i = 0; i < warp.particleCount; i = i + 1) { // Update the z position for each vector
+            vector = warp.geometry.vertices[i];
+            vector.z += warp.warpSpeed;
+            if (vector.z >= warp.camera.position.z) { // If the z position is equal or greater than the camera position, then reset the z position to default
+                warp.updateVector(vector);
             }
         }
         warp.geometry.verticesNeedUpdate = true;
@@ -59,6 +76,7 @@ var warp = {
         requestAnimationFrame(warp.renderWarp);
     },
 
+    // Redraw the scene and camera aspect if the window is resized
     redraw: function () {
         this.renderer.setSize(warp.getWidth(), warp.getHeight());
         this.camera.aspect = warp.getWidth() / warp.getHeight();
@@ -74,10 +92,12 @@ var warp = {
     }
 };
 
+// Initialise warp scene
 $(document).ready(function () {
     warp.init();
 });
 
+// Reconfigure warp scene on window resize
 $(window).on('resize', function () {
     warp.redraw();
 });
